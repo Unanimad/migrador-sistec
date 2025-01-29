@@ -43,7 +43,6 @@ class BrowserPlaywright:
         executor.submit(_navigate).result()  # Garante que execute na thread correta
 
     def track_navigation(self):
-        """Monitora a navegação do usuário dentro do SISTEC."""
         if not self.page:
             return
 
