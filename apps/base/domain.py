@@ -1,3 +1,4 @@
+import atexit
 import time
 import logging
 from concurrent.futures import ThreadPoolExecutor
@@ -8,7 +9,7 @@ logger = logging.getLogger(__name__)
 executor = ThreadPoolExecutor(max_workers=1)  # Garantir que Playwright roda na mesma thread
 
 
-class BrowserPlaywright:
+class BrowserManager:
     def __init__(self):
         self.playwright = None
         self.browser = None
@@ -47,7 +48,6 @@ class BrowserPlaywright:
             return
 
         def log_event(frame):
-            """Função chamada quando o usuário navega para uma nova URL."""
             if frame.url:
                 from apps.base.models import NavigationLog
 
@@ -58,5 +58,8 @@ class BrowserPlaywright:
         # Captura eventos de navegação no Playwright
         self.page.on("framenavigated", log_event)
 
+# Criar uma única instância global de Playwright
+browser_playwright = BrowserManager()
 
-browser_playwright = BrowserPlaywright()
+# Fechar Playwright corretamente ao encerrar o Django
+atexit.register(lambda: browser_playwright.end_playwright())
