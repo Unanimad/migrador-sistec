@@ -1,40 +1,46 @@
 import time
 import logging
-
+from concurrent.futures import ThreadPoolExecutor
 from playwright.sync_api import sync_playwright
 
 logger = logging.getLogger(__name__)
 
+executor = ThreadPoolExecutor(max_workers=1)  # Garantir que Playwright roda na mesma thread
+
 
 class BrowserPlaywright:
     def __init__(self):
-        self._playwright = None
+        self.playwright = None
         self.browser = None
         self.page = None
+        self.init_playwright()
 
-    def init_playwright(self, *args, **kwargs):
-        headless = kwargs.get("headless", False)
-        playwright = kwargs.get("playwright", None)
-        if not playwright:
-            self._playwright = sync_playwright().start()
-        self.browser = self._playwright.chromium.launch(headless=headless)
-        self.page = self.browser.new_page()
-        if not headless:
-            screen_width, screen_height = 1920, 1080
-            self.page.set_viewport_size(
-                {"width": screen_width, "height": screen_height}
-            )
+    def init_playwright(self, headless=False):
+        def _start_playwright():
+            self.playwright = sync_playwright().start()
+            self.browser = self.playwright.chromium.launch(headless=headless)
+            self.page = self.browser.new_page()
+
+        executor.submit(_start_playwright).result()  # Executar na thread correta
 
     def end_playwright(self):
-        self.browser.close()
-        self._playwright.stop()
+        def _close_browser():
+            if self.browser:
+                self.browser.close()
+            if self.playwright:
+                self.playwright.stop()
+
+        executor.submit(_close_browser).result()
 
     def goto(self, url: str):
-        if not self.browser.page:
-            self.browser.init_playwright()
+        if not self.browser:
+            raise Exception("Browser not initialized.")
 
-        self.page.goto(url)
-        self.track_navigation()
+        def _navigate():
+            self.page.goto(url)
+            self.track_navigation()
+
+        executor.submit(_navigate).result()  # Garante que execute na thread correta
 
     def track_navigation(self):
         """Monitora a navegação do usuário dentro do SISTEC."""
@@ -45,9 +51,13 @@ class BrowserPlaywright:
             """Função chamada quando o usuário navega para uma nova URL."""
             if frame.url:
                 from apps.base.models import NavigationLog
+
                 url = frame.url
                 logger.info(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Usuário navegou para: {url}")
                 NavigationLog.objects.create(url=url)
 
         # Captura eventos de navegação no Playwright
         self.page.on("framenavigated", log_event)
+
+
+browser_playwright = BrowserPlaywright()
