@@ -1,7 +1,7 @@
 from django.db.models.enums import TextChoices
 
 
-class IntituicaoChoices(TextChoices):
+class InstituicaoChoices(TextChoices):
     NAOINFORMADO = "", "Selecione..."
     CAMPUS_ARACAJU = 8474494, "GESTOR DA UNIDADE DE ENSINO - INSTITUTO FEDERAL DE SERGIPE - CAMPUS ARACAJU"
     CAMPUS_ESTANCIA = 8474496, "GESTOR DA UNIDADE DE ENSINO - INSTITUTO FEDERAL DE SERGIPE - CAMPUS ESTÂNCIA"
