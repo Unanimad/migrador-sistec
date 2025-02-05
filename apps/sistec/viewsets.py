@@ -4,19 +4,19 @@ from apps.sistec.models import CicloMatricula
 
 
 class CicloSerializer(serializers.Serializer):
-    curso = serializers.CharField(source="Curso")
-    codigo = serializers.IntegerField(source="Código do Ciclo")
-    nome = serializers.CharField(source="Nome do Ciclo")
-    periodo = serializers.CharField(source="Período do Ciclo")
-    status = serializers.CharField(source="Status do Ciclo")
-    tipo_curso = serializers.CharField(source="Tipo do Curso")
+    curso = serializers.CharField()
+    codigo_do_ciclo = serializers.IntegerField(source="codigo")
+    nome_do_ciclo = serializers.CharField(source="nome")
+    periodo_do_ciclo = serializers.CharField(source="periodo")
+    status_do_ciclo = serializers.CharField(source="status")
+    tipo_do_curso = serializers.CharField(source="tipo_curso")
 
 
 class CicloMatriculaSerializer(serializers.Serializer):
-    paginaAtual = serializers.IntegerField(source="pagina_atual")
-    totalPaginas = serializers.IntegerField(source="total_paginas")
-    totalRegistros = serializers.IntegerField(source="total_registros")
-    dados = CicloSerializer(many=True, source="ciclos")
+    pagina_atual = serializers.IntegerField()
+    total_paginas = serializers.IntegerField()
+    total_registros = serializers.IntegerField()
+    ciclos = CicloSerializer(many=True)
 
 
 # class PostCicloMatriculaSerializer(serializers.ModelSerializer):
