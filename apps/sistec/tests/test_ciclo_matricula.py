@@ -1,17 +1,21 @@
+import os
 import logging
+
 from collections import OrderedDict
+
 from django.test import TestCase
+
 from apps.sistec.choices import InstituicaoChoices
 from apps.sistec.domain.api_client import CicloMatriculaAPI
-from apps.sistec.viewsets import CicloMatriculaSerializer
 
 # Configuração do logger
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 handler = logging.StreamHandler()
 formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 handler.setFormatter(formatter)
 logger.addHandler(handler)
+
 
 class CicloMatriculaAPITest(TestCase):
     """
@@ -218,6 +222,26 @@ class CicloMatriculaAPITest(TestCase):
             logger.info(f"Teste para {instituicao.label} concluído com sucesso")
 
         logger.info("Todos os testes de listagem de ciclos de matrícula foram concluídos")
+
+    def test_download(self):
+        # manage.py test apps.sistec.tests.test_ciclo_matricula.CicloMatriculaAPITest.test_download
+        logger.info("Iniciando o teste de download de CSV")
+        ano = 2024
+        for instituicao in list(InstituicaoChoices)[1:]:
+            logger.debug(f"Testando a instituição: {instituicao.label}")
+            self.api = CicloMatriculaAPI(instituicao.value)
+
+            logger.info(f"Instanciando API para a instituição: {instituicao.label}")
+            self.api.download_csv(ano)
+            logger.info("Download de CSV concluído com sucesso")
+            expected_file_path = f"{self.api.__class__.__name__}_{instituicao.value}_{ano}.csv"
+
+            assert os.path.exists(expected_file_path), f"Arquivo não encontrado: {expected_file_path}"
+
+            os.remove(expected_file_path)
+            logger.debug(f"Arquivo {expected_file_path} removido com sucesso")
+        logger.info("Todos os testes de download de CSV foram concluídos")
+
 
 if __name__ == "__main__":
     TestCase.main()

@@ -50,6 +50,19 @@ class SisTecAPI:
             cookies = settings.COOKIE_SISTEC.format(instituicao_codigo=self.instituicao_codigo)
         self.headers["cookie"] = cookies
 
+    def save_csv(self, url, *args, **kwargs):
+        response = self.do_request(url, "POST", stream=True, *args, **kwargs)
+        file_name = f"{self.__class__.__name__}_{self.instituicao_codigo}"
+        for key, value in kwargs["data"].items():
+            file_name += f"_{value}" if value else ""
+
+        file_name = f"{file_name}.csv"
+        with open(file_name, "wb") as f:
+            for chunk in response.iter_content(chunk_size=128):
+                f.write(chunk)
+
+        return file_name
+
     @staticmethod
     def convert_keys_to_snake_case(data: dict):
         import re
@@ -95,3 +108,17 @@ class CicloMatriculaAPI(SisTecAPI):
         else:
             data.append(serializer.errors)
         return data
+
+    def download_csv(self, ano) -> str:
+        url = self.url_base + "/gridciclo/exportar-ciclo-turmas/"
+        data = {
+            "Ano": ano,
+            "coCiclo": None,
+            "noInstituicao": None,
+            "tipoCurso": None,
+            "stCicloName": None,
+            "acoes": None,
+        }
+
+        file_name = self.save_csv(url, data=data)
+        return file_name
