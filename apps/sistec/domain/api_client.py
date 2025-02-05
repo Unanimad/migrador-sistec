@@ -1,6 +1,7 @@
 import requests
 
 from typing import List
+from urllib.parse import urlencode
 
 from django.conf import settings
 
@@ -9,9 +10,17 @@ from apps.sistec.viewsets import CicloMatriculaSerializer
 
 
 class SisTecAPI:
-    def __init__(self, instituicao_codigo):
+    url_base = SISTEC.url_base
 
+    def __init__(self, instituicao_codigo):
         self.instituicao_codigo = instituicao_codigo
+
+        self.cookies = {
+            "PHPSESSID": "",
+            "BIGipServerPOOL_SISTEC": "3259007498.20480.0000",
+            "perfil_cookie": "GESTOR+DA+UNIDADE+DE+ENSINO",
+            "co_usuario": str(self.instituicao_codigo)
+        }
 
         self.headers = {
             "accept": "*/*",
@@ -28,7 +37,6 @@ class SisTecAPI:
             "sec-ch-ua-platform": '"Windows"'
         }
         self.login()
-        # self.__set_cookie(cookies=response.headers["Set-Cookie"])
 
     def login(self):
         url = f"{self.url_base}/index/index"
@@ -36,7 +44,6 @@ class SisTecAPI:
         dados = urlencode(dados)
         response = self.do_request(url, "POST", params=dados)
         response.raise_for_status()
-        return response
 
     def __set_cookie(self, cookies=None):
         if not cookies:
