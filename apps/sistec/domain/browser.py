@@ -2,7 +2,7 @@ from apps.base.domain import BrowserManager
 
 
 class SISTEC:
-    url_base = "https://sistec.mec.gov.br/"
+    url_base = "https://sistec.mec.gov.br"
 
     def login(self, browser: BrowserManager):
         browser.page.goto(self.url_base + "login/login")
