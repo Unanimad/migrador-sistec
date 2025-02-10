@@ -8,8 +8,8 @@ from bs4 import BeautifulSoup
 from django.conf import settings
 
 from apps.sistec.domain import SISTEC
-from apps.sistec.viewsets.ciclos_matricula import CicloMatriculaSerializer
-from apps.sistec.viewsets.cursos import CursoSerializer
+from apps.sistec.serializers.ciclos_matricula import CicloMatriculaSerializer
+from apps.sistec.serializers.cursos import CursoSerializer
 
 
 class SisTecAPI:
@@ -19,7 +19,7 @@ class SisTecAPI:
         self.instituicao_codigo = instituicao_codigo
 
         self.cookies = {
-            "PHPSESSID": "r4v4c7fhmk9l2mjbgcib15enf5",
+            "PHPSESSID": "",
             "BIGipServerPOOL_SISTEC": "3292561930.20480.0000",
             "perfil_cookie": "GESTOR+DA+UNIDADE+DE+ENSINO",
             "co_usuario": str(self.instituicao_codigo)
