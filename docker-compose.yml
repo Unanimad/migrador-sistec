@@ -1,0 +1,32 @@
+services:
+  db:
+    image: postgres:16.3
+    container_name: ${POSTGRES_CONTAINER_NAME:-db}
+    environment:
+      - POSTGRES_DB=${DATABASE_NAME:-db}
+      - POSTGRES_USER=${DATABASE_USER:-postgres}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD:-123456}
+    volumes:
+      - ${DATABASE_DUMP_DIR:-dump}:/dump
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - ${DATABASE_PORT:-5432}:5432
+    restart: always
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "${DATABASE_USER:-postgres}" ]
+      interval: 3s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+  redis:
+    image: 'bitnami/redis:latest'
+    restart: always
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+
+volumes:
+  db_data:
+    driver: local
