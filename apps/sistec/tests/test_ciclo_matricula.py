@@ -6,6 +6,7 @@ from collections import OrderedDict
 from django.test import TestCase
 
 from apps.sistec.choices import InstituicaoChoices
+from apps.sistec.domain import CursosAPI
 from apps.sistec.domain.api_client import CicloMatriculaAPI
 
 # Configuração do logger
@@ -22,9 +23,9 @@ class CicloMatriculaAPITest(TestCase):
     Test case for the CicloMatriculaAPI.
     """
 
-    @classmethod
-    def setUpTestData(cls):
-        cls.expected_responses = {
+    def test_list(self):
+        logger.info("Iniciando o teste da listagem de ciclos de matrícula")
+        expected_responses = {
             "CAMPUS_ARACAJU": [
                 OrderedDict([
                     ("pagina_atual", 1),
@@ -160,7 +161,8 @@ class CicloMatriculaAPITest(TestCase):
                             ("curso",
                              "EDUCAÇÃO DE JOVENS E ADULTOS INTEGRADA À EDUC. PROF. TEC. EJA/EPT COM ÊNFASE NA EDUCAÇÃO DO CAMPO - EDUCAÇÃO PRESENCIAL - AGO. 2023 / ABR. 2024"),
                             ("codigo", 3028295),
-                            ("nome", "EDUCAÇÃO DE JOVENS E ADULTOS INTEGRADA À EDUC. PROF. TEC.  EJA/EPT COM ÊNFASE NA EDUCAÇÃO DO CAMPO - EDUCAÇÃO PRESENCIAL"),
+                            ("nome",
+                             "EDUCAÇÃO DE JOVENS E ADULTOS INTEGRADA À EDUC. PROF. TEC.  EJA/EPT COM ÊNFASE NA EDUCAÇÃO DO CAMPO - EDUCAÇÃO PRESENCIAL"),
                             ("periodo", "04/08/2023 a 23/04/2024 em 160 horas"),
                             ("status", "CONCLUÍDO"),
                             ("tipo_curso", "FORMAÇÃO INICIAL")
@@ -207,9 +209,6 @@ class CicloMatriculaAPITest(TestCase):
                 ])
             ],
         }
-
-    def test_list(self):
-        logger.info("Iniciando o teste da listagem de ciclos de matrícula")
         for instituicao in list(InstituicaoChoices)[1:]:
             logger.debug(f"Testando a instituição: {instituicao.label}")
             self.api = CicloMatriculaAPI(instituicao.value)
@@ -218,7 +217,7 @@ class CicloMatriculaAPITest(TestCase):
             result = self.api.list(2023, [])
             logger.debug(f"Resultado da API para {instituicao.label}: {result}")
 
-            assert result[0].get("ciclos")[0] == self.expected_responses[instituicao.name][0].get("ciclos")[0]
+            assert result[0].get("ciclos")[0] == expected_responses[instituicao.name][0].get("ciclos")[0]
             logger.info(f"Teste para {instituicao.label} concluído com sucesso")
 
         logger.info("Todos os testes de listagem de ciclos de matrícula foram concluídos")
@@ -241,6 +240,33 @@ class CicloMatriculaAPITest(TestCase):
             os.remove(expected_file_path)
             logger.debug(f"Arquivo {expected_file_path} removido com sucesso")
         logger.info("Todos os testes de download de CSV foram concluídos")
+
+    def test_cursos_list(self):
+        # manage.py test apps.sistec.tests.test_ciclo_matricula.CicloMatriculaAPITest.test_cursos_list
+        logger.info("Iniciando o teste de listagem de cursos")
+        expected_len_responses = {
+            "CAMPUS_ARACAJU": 59,
+            "CAMPUS_ESTANCIA": 18,
+            "CAMPUS_ITABAIANA": 18,
+            "CAMPUS_LAGARTO": 41,
+            "CAMPUS_NOSSA_SENHORA_GLORIA": 13,
+            "CAMPUS_SAO_CRISTOVAO": 21,
+            "CAMPUS_NOSSA_SENHORA_SOCORRO": 9,
+            "CAMPUS_POCO_REDONDO": 2,
+            "CAMPUS_PROPRIA": 7,
+            "CAMPUS_TOBIAS_BARRETO": 16,
+        }
+
+        for instituicao in list(InstituicaoChoices)[1:]:
+            logger.debug(f"Testando a listagem de cursos da instituição: {instituicao.label}")
+            self.api = CursosAPI(instituicao.value)
+            result = self.api.list()
+            total_result = len(result)
+            logger.debug(f"Resultado da API para {instituicao.label}: {total_result} cursos cadastrados.")
+            assert total_result == expected_len_responses[instituicao.name]
+            logger.info(f"Teste para listagem de cursos da instituição {instituicao.label} concluído com sucesso")
+
+        logger.info("Teste de listagem de cursos concluído com sucesso")
 
 
 if __name__ == "__main__":

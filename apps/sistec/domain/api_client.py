@@ -3,10 +3,13 @@ import requests
 from typing import List
 from urllib.parse import urlencode
 
+from bs4 import BeautifulSoup
+
 from django.conf import settings
 
 from apps.sistec.domain import SISTEC
-from apps.sistec.viewsets import CicloMatriculaSerializer
+from apps.sistec.viewsets.ciclos_matricula import CicloMatriculaSerializer
+from apps.sistec.viewsets.cursos import CursoSerializer
 
 
 class SisTecAPI:
@@ -16,8 +19,8 @@ class SisTecAPI:
         self.instituicao_codigo = instituicao_codigo
 
         self.cookies = {
-            "PHPSESSID": "",
-            "BIGipServerPOOL_SISTEC": "3259007498.20480.0000",
+            "PHPSESSID": "r4v4c7fhmk9l2mjbgcib15enf5",
+            "BIGipServerPOOL_SISTEC": "3292561930.20480.0000",
             "perfil_cookie": "GESTOR+DA+UNIDADE+DE+ENSINO",
             "co_usuario": str(self.instituicao_codigo)
         }
@@ -122,3 +125,22 @@ class CicloMatriculaAPI(SisTecAPI):
 
         file_name = self.save_csv(url, data=data)
         return file_name
+
+
+class CursosAPI(SisTecAPI):
+    def list(self, tipo_curso: str = None):
+        url = self.url_base + "/admciclomatricula/cursos"
+        response = self.do_request(url, "POST", data={"tipoCurso": tipo_curso})
+        response_data = self.convert_keys_to_snake_case(response.json())
+        dados = response_data.pop("mensagem")
+
+        soup = BeautifulSoup(dados, "html.parser")
+        serializer = CursoSerializer(data=[
+            {"id": option.get("value"), "name": option.text.strip().upper()} for option in soup.find_all("option")[1:]
+            # ignore first blank option
+        ], many=True)
+
+        if serializer.is_valid():
+            return serializer.validated_data
+
+        return serializer.errors
